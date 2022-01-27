@@ -11,7 +11,7 @@ from collections import Counter
 import numpy as np
 
 # Read dataset from CSV file
-col_names = ["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "Expiry", "HTTP-Only", "JavaScript", "Class"]
+col_names = ["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "Expiry", "HTTP_Only", "JavaScript", "Class"]
 dataset = pd.read_csv("data/cookies.csv", names=col_names)
 
 # TODO: Implement all helper functions
@@ -19,7 +19,7 @@ dataset = pd.read_csv("data/cookies.csv", names=col_names)
 # *******************************************
 
 
-COOKIE_ALPHABET = "abdefghijklmnqrstuvxyzABDEFGHIJKLMNQRSTUVXYZ0123456789!#$%&'()*+-./:<>?@[]^_`{|}~"
+COOKIE_ALPHABET = "abdefghijklmnqrstuvxyzABDEFGHIJKLMNQRSTUVXYZ0123456789!#$%&'*+-.^_`|~"
 
 
 def index_of_coincidence(c_value):
@@ -43,6 +43,23 @@ def shannon_entropy(c_value, base=2):
     for _, c in ctr.items():
         entropy += (c / n) * np.log(c / n) / np.log(base)
     return -entropy
+
+
+def idf_(website, group, js=False):
+    tf_true, tf_false = 1, 0
+    if js:
+        tf_true, tf_false = 0, 1
+    n, nt = 0, 0
+    try:
+        n = group[(website, tf_false)] + group[(website, tf_true)]
+        nt = group[(website, tf_true)]
+    except KeyError:
+        try:
+            n = group[(website, tf_false)]
+        except KeyError:
+            n = group[(website, tf_true)]
+
+    return np.log(n / (nt + 1)) / np.log(2)
 
 
 # *******************************************
@@ -73,12 +90,32 @@ dataset["Entropy"] = np.asarray(dataset["Value"].map(shannon_entropy)).astype(np
 # Length
 dataset["Length"] = dataset["Value"].map(lambda v: len(str(v)))
 
+# Z-Length
+length_mean = dataset.groupby(["Website"])[["Length"]].mean()
+length_std = dataset.groupby(["Website"])[["Length"]].std()
+dataset["Z-Length"] = dataset.apply(lambda z:
+                                    (z.Length - length_mean["Length"].loc[
+                                        z.Website]) / length_std["Length"].loc[z.Website]
+                                    , axis=1).fillna(0)
+
+# TF-IDF
+group_by_secure = dataset.groupby(["Website", "Secure"]).size()
+group_by_http = dataset.groupby(["Website", "HTTP_Only"]).size()
+group_by_js = dataset.groupby(["Website", "JavaScript"]).size()
+
+dataset["TFIDF_S"] = dataset.apply(lambda w: w.Secure * idf_(
+    w.Website, group_by_secure), axis=1)
+dataset["TFIDF_H"] = dataset.apply(lambda w: w.HTTP_Only * idf_(
+    w.Website, group_by_http), axis=1)
+dataset["TFIDF_J"] = dataset.apply(lambda w: w.JavaScript * idf_(
+    w.Website, group_by_js, js=True), axis=1)
+
 # *******************************************
 
 
 # Remove unused columns
 dataset = dataset.drop(
-    columns=["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "HTTP-Only", "JavaScript"])
+    columns=["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "HTTP_Only", "JavaScript"])
 
 # Split dataset into training and test set (8:2) ratio
 train_dataset = dataset.sample(frac=0.8, random_state=0)
@@ -90,11 +127,16 @@ tfdf_test = tfdf.keras.pd_dataframe_to_tf_dataset(test_dataset, label="Class")
 
 # Initialize then train model
 RF_model = tfdf.keras.RandomForestModel()
-RF_model.fit(tfdf_train)
+
+# Class Imbalance
+penalization_term = 2.0
+class_weight = {0: (1/2204)*(2546/penalization_term), 1: (1/342)*(2546/penalization_term)}
+RF_model.fit(tfdf_train, class_weight=class_weight)
 
 # Evaluate model
 # Metrics are available here: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
-RF_model.compile(metrics=["accuracy", "TruePositives", "TrueNegatives", "FalsePositives", "FalseNegatives", tf.keras.metrics.AUC(name='roc', curve='ROC'), tf.keras.metrics.AUC(name='pr', curve='PR')])
+RF_model.compile(metrics=["accuracy", "TruePositives", "TrueNegatives", "FalsePositives", "FalseNegatives",
+                          tf.keras.metrics.AUC(name='roc', curve='ROC'), tf.keras.metrics.AUC(name='pr', curve='PR')])
 evaluation = RF_model.evaluate(tfdf_test, return_dict=True)
 
 # This one prints lower than average metrics (sensitivity and PR AUC)
@@ -108,5 +150,4 @@ for name, value in evaluation.items():
 # Save model
 RF_model.save("models/RF_model")
 
-# TODO: Understand what the summary prints
-# RF_model.summary()
+dataset.to_csv("./data/dataset.csv", encoding='utf-8', index=False)
