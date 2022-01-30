@@ -1,12 +1,15 @@
-# Module for training features
+# Convert dataset values into training features
+# TODO:
+# 1. Rewrite this as a function that can be called in main
+# 2. Move data normalization in this file
+
 
 import pandas as pd
-
-from collections import Counter
 import numpy as np
+from collections import Counter
+
 
 # Read dataset from CSV file
-
 dataset = pd.read_csv("data/cookies.csv", names=[
     "Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "Expiry", "HTTP_Only", "JavaScript", "Class"])
 
@@ -86,7 +89,7 @@ dataset["Length"] = dataset["Value"].map(lambda v: len(str(v)))
 # Z-Length
 length_mean = dataset.groupby(["Website"])[["Length"]].mean()
 length_std = dataset.groupby(["Website"])[["Length"]].std()
-dataset["Z-Length"] = dataset.apply(lambda z:
+dataset["Z_Length"] = dataset.apply(lambda z:
                                     (z.Length - length_mean["Length"].loc[
                                         z.Website]) / length_std["Length"].loc[z.Website]
                                     , axis=1).fillna(0)
@@ -108,7 +111,7 @@ dataset["TFIDF_J"] = dataset.apply(lambda w: w.JavaScript * idf_(
 
 # Remove unused columns
 dataset = dataset.drop(
-    columns=["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "HTTP_Only", "JavaScript"])
+    columns=["Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "HTTP_Only"])
 
 # Save as csv file
 dataset.to_csv("./data/features.csv", encoding='utf-8', index=False)
