@@ -51,8 +51,8 @@ def build_model(hp):
         n_estimators=hp.Int("n_estimators", 100, 500, step=10),
         criterion=hp.Choice("criterion", ["gini", "entropy"]),
         max_depth=hp.Int("max_depth", 4, 32, step=1),
-        min_samples_split=hp.Float("min_samples_split", 0.1, 1.0, step=0.1),
-        min_samples_leaf=hp.Float("min_samples_leaf", 0.1, 0.5, step=0.1),
+        min_samples_split=hp.Int("min_samples_split", 2, 20, step=1),
+        min_samples_leaf=hp.Int("min_samples_leaf", 1, 5, step=1),
         max_features=hp.Choice("max_features", ["auto", "sqrt", "log2"]),
         class_weight={0: (2546 / (2204 * 2.0)), 1: (2546 / (342 * 2.0))}
         # Try to implement class_weight as a hyperparameter
@@ -88,7 +88,8 @@ tuner = kt.tuners.SklearnTuner(
     # i.e. if you want to find better hyperparameters
     # No idea if this can be done automatically after each run
     directory='./model/',
-    project_name='random_forest')
+    project_name='random_forest'
+    )
 
 # Search for the best hyperparameter values
 tuner.search(X_train, y_train.values.ravel())
@@ -112,18 +113,18 @@ print("fp:", fp, "tn:", tn)
 
 # These are the best hyperparameters from my testing
 # Hyperparameter        |Best Value So Far
-# n_estimators          |500
-# criterion             |gini
-# max_depth             |16
-# min_samples_split     |0.4
-# min_samples_leaf      |0.1
-# max_features          |auto
+# n_estimators          | 150
+# criterion             | entropy
+# max_depth             | 7
+# min_samples_split     | 16
+# min_samples_leaf      | 2
+# max_features          | auto
 # And the corresponding evaluation metrics
-# PR-AUC: 0.2797222391247026
-# Specificity: 0.6794582392776524
-# Sensitivity/Recall: 0.8955223880597015
-# Precision: 0.297029702970297
-# F2-Score: 0.6382978723404256
+# PR-AUC: 0.34888310401918826
+# Specificity: 0.8036117381489842
+# Sensitivity/Recall: 0.835820895522388
+# Precision: 0.3916083916083916
+# F2-Score: 0.6812652068126521
 # Confusion Matrix:
-# tp: 60 fn: 7
-# fp: 142 tn: 301
+# tp: 56 fn: 11
+# fp: 87 tn: 356
