@@ -54,12 +54,9 @@ def evaluate_model(model, x_, y_true):
     print("fp:", fp, "tn:", tn)
     print("PR-AUC:", metrics.average_precision_score(y_true, y_pred))
 
-    precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_pred)
-    fig, ax = plt.subplots()
-    ax.plot(recall, precision)
-    ax.set_title('Precision-Recall Curve')
-    ax.set_ylabel('Precision')
-    ax.set_xlabel('Recall')
+    display = metrics.PrecisionRecallDisplay.from_estimator(
+        model, X_test, y_test, name="Random Forest")
+    _ = display.ax_.set_title("Precision-Recall Curve")
     plt.show()
 
 
