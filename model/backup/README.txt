@@ -13,4 +13,4 @@ tp: 64 fn: 7
 fp: 88 tn: 351
 PR-AUC: 0.39326589049259436
 
-The best-performing model is converted into a Tensorflow SavedModel and is stored in model_tf.
+The best-performing model is converted into a Tensorflow SavedModel and is stored in model_tfdf.
