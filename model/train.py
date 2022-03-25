@@ -31,12 +31,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 def build_model(hp):
     model = RandomForestClassifier(
-        n_estimators=hp.Int("n_estimators", 100, 500, step=10),
+        n_estimators=hp.Int("n_estimators", 1, 500, step=5),
         criterion=hp.Choice("criterion", ["gini", "entropy"]),
-        max_depth=hp.Int("max_depth", 6, 15, step=1),
-        min_samples_split=hp.Int("min_samples_split", 20, 110, step=5),
+        max_depth=hp.Int("max_depth", 1, 20, step=1),
+        min_samples_split=hp.Int("min_samples_split", 2, 300, step=5),
         max_features=hp.Choice("max_features", ["auto", "log2"]),
-        max_leaf_nodes=hp.Int("max_leaf_nodes", 30, 230, step=10),
+        max_leaf_nodes=hp.Int("max_leaf_nodes", 2, 250, step=5),
         max_samples=hp.Float("max_samples", 0.01, 1.0, step=0.01),
         class_weight="balanced",
         oob_score="True",
