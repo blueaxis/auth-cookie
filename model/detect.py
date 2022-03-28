@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from features import cookieCutter
+import pickle
 
 # Set up Flask and bypass CORS
 app = Flask(__name__)
 cors = CORS(app)
+model = None
 
 # Create the receiver API POST endpoint
 @app.route("/RF", methods=["POST"])
@@ -23,9 +26,21 @@ def detect_cookies():
     # "storeId": ID,
     # "value":VALUE}
     
+    cutData = cookieCutter(data)
+    result = detect(cutData)
+    
+    data["class"] = result
     # Convert to JSON before returning data
     output = jsonify(data)
     return output
 
-if __name__ == "__main__": 
+def load_model():
+    model = pickle.load(open('model_7728_12.sav', 'rb'))
+    return model
+
+def detect(x):
+    return model.predict(x)
+
+if __name__ == "__main__":
+    model = load_model()
     app.run(host="localhost", port=5000, debug=True)

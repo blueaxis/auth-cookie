@@ -115,3 +115,48 @@ dataset = dataset.drop(
 
 # Save as csv file
 dataset.to_csv("./data/features.csv", encoding='utf-8', index=False)
+
+#cookie feature converter
+#cookie =  {"domain": DOMAIN,
+    # "expirationDate": EXPIRY,
+    # "hostOnly": IS_JAVASCRIPT,
+    # "httpOnly": IS_HTTP_ONLY,
+    # "name": NAME,
+    # "path": PATH,
+    # "sameSite": IS_SAMESITE,
+    # "secure": IS_SECURE,
+    # "storeId": ID,
+    # "value":VALUE}
+ # ret = {Expiry 	JavaScript 	Scheme 	IC 	Entropy 	Length 	Z_Length 	TFIDF_S 	TFIDF_H 	TFIDF_J}
+
+def cookieCutter(cookie):
+    ret = {}
+    ret["Expiry"] = cookie["expirationDate"] - 1370000000
+    ret["JavaScript"] = cookie["hostOnly"]
+    ret["Scheme"] = (1 if (cookie["name"] in STANDARD_NAMES) else 0)
+    ret["IC"] = index_of_coincidence(cookie["value"])
+    ret["Entropy"] = shannon_entropy(cookie["value"])
+    ret["Length"] = len(str(cookie['value']))
+    ret["Z_Length"] = -2.8039 #average ng traingin dataset
+    ret["TFIDF_S"] = 0.099413877 #average tfidf_s ng training dataset
+    ret["TFIDF_H"] = 0.20152078 #average tfidf_h ng training dataset
+    ret["TFIDF_J"] = 0.470163575 #average tfidf_j ng training dataset
+    #normalize
+    ret["Expiry"] = (ret["Expiry"] - 146540488.5) / 578423638.8
+    ret["JavaScript"] = (ret["JavaScript"] - 0.418695994) / 0.493345375
+    ret["Scheme"] = (ret["Scheme"] - 0.029850746) / 0.170175437
+    ret["IC"] = (ret["IC"] - 0.18569332) / 0.319782136
+    ret["Entropy"] = (ret["Entropy"] - 2.956862998) / 1.581445464
+
+    return [
+        ret["Expiry"],
+        ret["JavaScript"],
+        ret["Scheme"],
+        ret["IC"],
+        ret["Entropy"],
+        ret["Length"],
+        ret["Z_Length"],
+        ret["TFIDF_S"],
+        ret["TFIDF_H"],
+        ret["TFIDF_J"]
+    ]
