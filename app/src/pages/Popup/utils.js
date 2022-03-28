@@ -1,17 +1,4 @@
 
-/** Helper function to convert the cookie format */
-const randomForestCookie = (c) => {
-  return {
-    name: c.name,
-    value: c.value,
-    domain: c.domain,
-    expiry: c.expirationDate,
-    secure: c.secure,
-    httpOnly: c.httpOnly,
-    javaScript: c.hostOnly
-  }
-}
-
 /** Get all the cookies of the active tab */
 const getCurrentTabCookies = async () => {
   let tab = await chrome.tabs.query({active: true, lastFocusedWindow: true});
@@ -20,15 +7,12 @@ const getCurrentTabCookies = async () => {
 }
 
 /** Detect authentication cookies using the random forest model */
-const detectCookies = () => {
-  let allCookies = [];
-  getCurrentTabCookies().then(
-    (cookies) => {
-      allCookies = cookies.map(randomForestCookie);
-      // alert(JSON.stringify(allCookies));
+const detectCookies = async () => {
+  return await getCurrentTabCookies().then(
+    async (allCookies) => {
 
       // Send cookies to the Flask API
-      fetch("http://127.0.0.1:5000/RF", {
+      return await fetch("http://127.0.0.1:5000/RF", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
@@ -37,15 +21,12 @@ const detectCookies = () => {
         body: JSON.stringify(allCookies)
       
       }).then(response => {
-        if (response.ok) {
-          return response.json()
-        }
-        else { alert("Something went wrong.") }
+        if (response.ok) { return response.json(); }
+        else { alert("Something went wrong."); }
       
       }).then(authCookieNames => {
-        // This is returning undefined, will fix later
-        return authCookieNames
-      })
+        return authCookieNames;
+      });
     }
   );
 }
@@ -54,11 +35,28 @@ const detectCookies = () => {
  * Protect authentication cookies by setting Secure and 
  * HTTP-Only flags to true 
  * */ 
-export const protectCookies = async () => {
+export const protectCookies = () => {
 
   detectCookies().then(authCookieNames => {
-    alert(authCookieNames);
-    // Protection logic goes here
+    for (let c of authCookieNames) {
+
+      // This will set the Secure and HTTP-Only flags to true
+      let authCookie = {
+        name: c.name,
+        value: c.value,
+        domain: c.domain,
+        path: c.path,
+        expirationDate: c.expirationDate,
+        secure: true,
+        httpOnly: true,
+        sameSite: c.sameSite,
+        storeId: c.storeId,
+        url: "https://" + c.domain.slice(1, c.domain.length)
+      }
+      chrome.cookies.set(authCookie);
+    }
+
+    alert("Authentication cookies are now protected.")
   });
 
 }

@@ -12,14 +12,17 @@ def detect_cookies():
     data = request.get_json()
     # Process cookies here where data is an array of cookies
     # Each cookie is a dictionary and have the following format:
-    # { name: NAME,
-    # value: VAL,
-    # domain: DOM,
-    # expiry: EXP,
-    # secure: isSEC,
-    # httpOnly: isHTTP,
-    # javaScript: isJS }
-
+    # {"domain": DOMAIN,
+    # "expirationDate": EXPIRY,
+    # "hostOnly": IS_JAVASCRIPT,
+    # "httpOnly": IS_HTTP_ONLY,
+    # "name": NAME,
+    # "path": PATH,
+    # "sameSite": IS_SAMESITE,
+    # "secure": IS_SECURE,
+    # "storeId": ID,
+    # "value":VALUE}
+    
     # Convert to JSON before returning data
     output = jsonify(data)
     return output
