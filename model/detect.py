@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from features import cookieCutter
 import pickle
+import pandas as pd
 
 # Set up Flask and bypass CORS
 app = Flask(__name__)
@@ -26,12 +27,14 @@ def detect_cookies():
     # "storeId": ID,
     # "value":VALUE}
     
+    res = []
     cutData = cookieCutter(data)
-    result = detect(cutData)
+    for i in cutData:
+        if detect(i):
+            res.append(data[cutData.index(i)])
     
-    data["class"] = result
     # Convert to JSON before returning data
-    output = jsonify(data)
+    output = jsonify(res)
     return output
 
 def load_model():

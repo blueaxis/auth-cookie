@@ -129,34 +129,38 @@ dataset.to_csv("./data/features.csv", encoding='utf-8', index=False)
     # "value":VALUE}
  # ret = {Expiry 	JavaScript 	Scheme 	IC 	Entropy 	Length 	Z_Length 	TFIDF_S 	TFIDF_H 	TFIDF_J}
 
-def cookieCutter(cookie):
-    ret = {}
-    ret["Expiry"] = cookie["expirationDate"] - 1370000000
-    ret["JavaScript"] = cookie["hostOnly"]
-    ret["Scheme"] = (1 if (cookie["name"] in STANDARD_NAMES) else 0)
-    ret["IC"] = index_of_coincidence(cookie["value"])
-    ret["Entropy"] = shannon_entropy(cookie["value"])
-    ret["Length"] = len(str(cookie['value']))
-    ret["Z_Length"] = -2.8039 #average ng traingin dataset
-    ret["TFIDF_S"] = 0.099413877 #average tfidf_s ng training dataset
-    ret["TFIDF_H"] = 0.20152078 #average tfidf_h ng training dataset
-    ret["TFIDF_J"] = 0.470163575 #average tfidf_j ng training dataset
-    #normalize
-    ret["Expiry"] = (ret["Expiry"] - 146540488.5) / 578423638.8
-    ret["JavaScript"] = (ret["JavaScript"] - 0.418695994) / 0.493345375
-    ret["Scheme"] = (ret["Scheme"] - 0.029850746) / 0.170175437
-    ret["IC"] = (ret["IC"] - 0.18569332) / 0.319782136
-    ret["Entropy"] = (ret["Entropy"] - 2.956862998) / 1.581445464
+def cookieCutter(dataset):
+    ret = pd.DataFrame()
 
-    return [
-        ret["Expiry"],
-        ret["JavaScript"],
-        ret["Scheme"],
-        ret["IC"],
-        ret["Entropy"],
-        ret["Length"],
-        ret["Z_Length"],
-        ret["TFIDF_S"],
-        ret["TFIDF_H"],
-        ret["TFIDF_J"]
-    ]
+    ret["Expiry"] = dataset["expirationDate"].map(lambda e: e - 1370000000)
+    ret["JavaScript"] = dataset.hostOnly
+    ret["Scheme"] = dataset["name"].map(lambda n: 1 if (n in STANDARD_NAMES) else 0)
+    ret["IC"] = np.asarray(dataset["value"].map(index_of_coincidence)).astype(np.float32)
+    ret["Entropy"] = np.asarray(dataset["value"].map(shannon_entropy)).astype(np.float32)
+    ret["Length"] = dataset["value"].map(lambda v: len(str(v)))
+
+    length_mean = ret.length.mean()
+    length_std = ret.length.std()
+
+    ret["Z_Length"] = dataset.apply(lambda z:
+                                    (z.Length - length_mean) / length_std
+                                    ,axis=1).fillna(0)
+    group_by_secure = dataset.groupby(["domain", "secure"]).size()
+    group_by_http = dataset.groupby(["domain", "httpOnly"]).size()
+    group_by_js = dataset.groupby(["domain", "hostOnly"]).size()
+    ret["TFIDF_S"] = dataset.apply(lambda w: w.secure * idf_(
+    w.domain, group_by_secure), axis=1)
+    ret["TFIDF_H"] = dataset.apply(lambda w: w.httpOnly * idf_(
+    w.domain, group_by_http), axis=1)
+    ret["TFIDF_J"] = dataset.apply(lambda w: w.hostOnly * idf_(
+    w.domain, group_by_js, js=True), axis=1)
+    
+
+    #normalize
+    ret["Expiry"] = (ret["Expiry"] - ret["Expiry"].mean()) / ret["Expiry"].std()
+    ret["JavaScript"] = (ret["JavaScript"] - ret["JavaScript"].mean()) / ret["JavaScript"].std()
+    ret["Scheme"] = (ret["Scheme"] - ret["Scheme"].mean()) / ret["Scheme"].std()
+    ret["IC"] = (ret["IC"] - ret["IC"].mean()) / ret["IC"].std()
+    ret["Entropy"] = (ret["Entropy"] - ret["Entropy"].mean()) / ret["Entropy"].std()
+
+    return ret.values.tolist()
