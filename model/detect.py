@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from features import cookieCutter
 import pickle
-import pandas as pd
 import numpy as np
 
 # Set up Flask and bypass CORS
@@ -39,7 +38,7 @@ def detect_cookies():
     return output
 
 def load_model():
-    model = pickle.load(open('model_7728_12.sav', 'rb'))
+    model = pickle.load(open('model.sav', 'rb'))
     return model
 
 def detect(x):
