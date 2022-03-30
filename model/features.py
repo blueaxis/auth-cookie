@@ -131,7 +131,7 @@ def cookieCutter(x):
     ret = pd.DataFrame()
 
     ret["Expiry"] = dataset["expirationDate"].map(lambda e: e - 1370000000).fillna(0)
-    ret["JavaScript"] = dataset.hostOnly.map(lambda j: 1 if 'True' else 0)
+    ret["JavaScript"] = dataset.hostOnly.map(lambda j: 1 if (j == "True") else 0)
     ret["Scheme"] = dataset["name"].map(lambda n: 1 if (n in STANDARD_NAMES) else 0)
     ret["IC"] = np.asarray(dataset["value"].map(index_of_coincidence)).astype(np.float32)
     ret["Entropy"] = np.asarray(dataset["value"].map(shannon_entropy)).astype(np.float32)
@@ -152,7 +152,6 @@ def cookieCutter(x):
     w.domain, group_by_http), axis=1)
     ret["TFIDF_J"] = dataset.apply(lambda w: w.hostOnly * idf_(
     w.domain, group_by_js, js=True), axis=1)
-    
 
     #normalize
     ret["Expiry"] = (ret["Expiry"] - ret["Expiry"].mean()) / ret["Expiry"].std()
