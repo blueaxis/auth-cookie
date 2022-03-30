@@ -51,6 +51,14 @@ def idf_(website, group, js=False):
 
     return np.log(n / (nt + 1)) / np.log(2)
 
+STANDARD_NAMES = ["JSESSIONID", "ASPSESSIONIDXXXXXXXX", "ASP.NET_SessionId", "PHPSESSION", "wiki18_session",
+                    "WebLogicSession", "BIGipServerxxx_xxx_xxx_PROTO", "SERVERID", "SaneID", "ssuid", "vgnvisitor",
+                    "SESSION_ID", "NSES40Session", "iPlanetUserId", "gx_session_id_", "JROUTE", "RMID", "JSESSIONID",
+                    "Apache", "CFID", "CFTOKEN", "CFGLOBALS", "RoxenUserID", "JServSessionIdroot", "sesessionid",
+                    "PD-S-SESSION-ID", "PD_STATEFUL", "WEBTRENDS_ID", "__utmX", "sc_id", "s_sq", "s_sess", "s_vi_XXXXXX",
+                    "MintUnique", "MintXXXX", "SS_X_CSINTERSESSIONID", "CSINTERSESSIONID", "_sn", "BCSI-CSCXXXXXXX",
+                    "Ltpatoken", "Ltpatoken2", "LtpatokenExpiry", "LtpatokenUsername", "DomAuthSessID", "connect.sid"]
+
 if __name__ == "__main__":
 
 # *******************************************
@@ -62,13 +70,6 @@ if __name__ == "__main__":
         "Website", "ID", "Name", "Value", "Domain", "Path", "Secure", "Expiry", "HTTP_Only", "JavaScript", "Class"])
 
 # Naming Scheme
-    STANDARD_NAMES = ["JSESSIONID", "ASPSESSIONIDXXXXXXXX", "ASP.NET_SessionId", "PHPSESSION", "wiki18_session",
-                    "WebLogicSession", "BIGipServerxxx_xxx_xxx_PROTO", "SERVERID", "SaneID", "ssuid", "vgnvisitor",
-                    "SESSION_ID", "NSES40Session", "iPlanetUserId", "gx_session_id_", "JROUTE", "RMID", "JSESSIONID",
-                    "Apache", "CFID", "CFTOKEN", "CFGLOBALS", "RoxenUserID", "JServSessionIdroot", "sesessionid",
-                    "PD-S-SESSION-ID", "PD_STATEFUL", "WEBTRENDS_ID", "__utmX", "sc_id", "s_sq", "s_sess", "s_vi_XXXXXX",
-                    "MintUnique", "MintXXXX", "SS_X_CSINTERSESSIONID", "CSINTERSESSIONID", "_sn", "BCSI-CSCXXXXXXX",
-                    "Ltpatoken", "Ltpatoken2", "LtpatokenExpiry", "LtpatokenUsername", "DomAuthSessID", "connect.sid"]
     dataset["Scheme"] = dataset["Name"].map(lambda n: 1 if (n in STANDARD_NAMES) else 0)
 
 # Expiration
@@ -125,20 +126,21 @@ if __name__ == "__main__":
     # "value":VALUE}
  # ret = {Expiry 	JavaScript 	Scheme 	IC 	Entropy 	Length 	Z_Length 	TFIDF_S 	TFIDF_H 	TFIDF_J}
 
-def cookieCutter(dataset):
+def cookieCutter(x):
+    dataset = pd.DataFrame(x)
     ret = pd.DataFrame()
 
-    ret["Expiry"] = dataset["expirationDate"].map(lambda e: e - 1370000000)
-    ret["JavaScript"] = dataset.hostOnly
+    ret["Expiry"] = dataset["expirationDate"].map(lambda e: e - 1370000000).fillna(0)
+    ret["JavaScript"] = dataset.hostOnly.map(lambda j: 1 if 'True' else 0)
     ret["Scheme"] = dataset["name"].map(lambda n: 1 if (n in STANDARD_NAMES) else 0)
     ret["IC"] = np.asarray(dataset["value"].map(index_of_coincidence)).astype(np.float32)
     ret["Entropy"] = np.asarray(dataset["value"].map(shannon_entropy)).astype(np.float32)
     ret["Length"] = dataset["value"].map(lambda v: len(str(v)))
 
-    length_mean = ret.length.mean()
-    length_std = ret.length.std()
+    length_mean = ret.Length.mean()
+    length_std = ret.Length.std()
 
-    ret["Z_Length"] = dataset.apply(lambda z:
+    ret["Z_Length"] = ret.apply(lambda z:
                                     (z.Length - length_mean) / length_std
                                     ,axis=1).fillna(0)
     group_by_secure = dataset.groupby(["domain", "secure"]).size()
@@ -154,9 +156,6 @@ def cookieCutter(dataset):
 
     #normalize
     ret["Expiry"] = (ret["Expiry"] - ret["Expiry"].mean()) / ret["Expiry"].std()
-    ret["JavaScript"] = (ret["JavaScript"] - ret["JavaScript"].mean()) / ret["JavaScript"].std()
-    ret["Scheme"] = (ret["Scheme"] - ret["Scheme"].mean()) / ret["Scheme"].std()
     ret["IC"] = (ret["IC"] - ret["IC"].mean()) / ret["IC"].std()
     ret["Entropy"] = (ret["Entropy"] - ret["Entropy"].mean()) / ret["Entropy"].std()
-
-    return ret.values.tolist()
+    return ret

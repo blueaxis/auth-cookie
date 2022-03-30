@@ -3,6 +3,7 @@ from flask_cors import CORS
 from features import cookieCutter
 import pickle
 import pandas as pd
+import numpy as np
 
 # Set up Flask and bypass CORS
 app = Flask(__name__)
@@ -29,10 +30,10 @@ def detect_cookies():
     
     res = []
     cutData = cookieCutter(data)
-    for i in cutData:
-        if detect(i):
-            res.append(data[cutData.index(i)])
-    
+    pred = detect(cutData)
+    index = np.where(pred == 1)
+    for i in index[0]:
+        res.append(data[i])
     # Convert to JSON before returning data
     output = jsonify(res)
     return output
