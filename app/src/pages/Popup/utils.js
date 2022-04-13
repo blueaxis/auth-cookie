@@ -3,6 +3,7 @@
 const getCurrentTabCookies = async () => {
   let tab = await chrome.tabs.query({active: true, lastFocusedWindow: true});
   let cookies = await chrome.cookies.getAll({"url": tab[0].url});
+  alert("Cookies in the site:\n" + JSON.stringify(cookies))
   return cookies;
 }
 
@@ -35,9 +36,13 @@ const detectCookies = async () => {
  * Protect authentication cookies by setting Secure and 
  * HTTP-Only flags to true 
  * */ 
-export const protectCookies = () => {
+export const protectCookies = (toDelete = true) => {
 
   detectCookies().then(authCookieNames => {
+
+    alert("The following are detected as authentication cookies:\n" +
+      JSON.stringify(authCookieNames));
+
     for (let c of authCookieNames) {
 
       // This will set the Secure and HTTP-Only flags to true

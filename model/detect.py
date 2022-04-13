@@ -28,6 +28,8 @@ def detect_cookies():
     # "value":VALUE}
     
     res = []
+    # FIXME: There is a bug where cookieCutter is converting 
+    # data to NaN. I cannot replicate the issue, will try later.
     cutData = cookieCutter(data)
     pred = detect(cutData)
     index = np.where(pred == 1)
