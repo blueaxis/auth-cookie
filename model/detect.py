@@ -1,13 +1,30 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from features import cookieCutter
 import pickle
 import numpy as np
+
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+
+from features import cookieCutter
 
 # Set up Flask and bypass CORS
 app = Flask(__name__)
 cors = CORS(app)
 model = None
+table_data = {}
+
+@app.route('/')
+def display_results():
+    headings = ["Cookie Name", "HTTP-Only", "Secure"]
+    data = []
+    for cookie in table_data:
+        row_data = [
+            cookie['name'],
+            cookie['httpOnly'],
+            cookie['secure']
+        ]
+        data.append(row_data)
+    print(data)
+    return render_template('result.html', headings=headings, data=data)
 
 # Create the receiver API POST endpoint
 @app.route("/RF", methods=["POST"])
@@ -36,6 +53,8 @@ def detect_cookies():
     for i in index[0]:
         res.append(data[i])
     # Convert to JSON before returning data
+    global table_data
+    table_data = res
     output = jsonify(res)
     return output
 

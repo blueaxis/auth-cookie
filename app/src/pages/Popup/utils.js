@@ -1,9 +1,17 @@
 
+/** Checks whether an object is iterable*/
+const isIterable = (obj) => {
+  if (obj == null) {
+    return false;
+  }
+  return typeof obj[Symbol.iterator] === 'function';
+}
+
 /** Get all the cookies of the active tab */
 const getCurrentTabCookies = async () => {
   let tab = await chrome.tabs.query({active: true, lastFocusedWindow: true});
   let cookies = await chrome.cookies.getAll({"url": tab[0].url});
-  alert("Cookies in the site:\n" + JSON.stringify(cookies))
+  // alert("Cookies in the site:\n" + JSON.stringify(cookies))
   return cookies;
 }
 
@@ -39,9 +47,11 @@ const detectCookies = async () => {
 export const protectCookies = (toDelete = true) => {
 
   detectCookies().then(authCookieNames => {
-
-    alert("The following are detected as authentication cookies:\n" +
-      JSON.stringify(authCookieNames));
+    
+    if (!isIterable(authCookieNames)) {
+      alert("No authentication cookies were detected.")
+      return
+    }
 
     for (let c of authCookieNames) {
 
@@ -59,6 +69,13 @@ export const protectCookies = (toDelete = true) => {
         url: "https://" + c.domain.slice(1, c.domain.length)
       }
       chrome.cookies.set(authCookie);
+
+      // let delCookie = {
+      //   name: c.name,
+      //   storeId: c.storeId,
+      //   url: "https://" + c.domain.slice(1, c.domain.length)
+      // }
+      // if (toDelete) { chrome.cookies.remove(delCookie); }
     }
 
     alert("Authentication cookies are now protected.")
