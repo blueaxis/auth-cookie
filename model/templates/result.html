@@ -1,26 +1,67 @@
+<!--
+
+Copyright (c) 2022 by Sdhnik (https://codepen.io/sdhnik/pen/JdVaow)
+
+Permission is hereby granted, free of charge, to any person 
+obtaining a copy of this software and associated documentation 
+files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, 
+merge, publish, distribute, sublicense, and/or sell copies of 
+the Software, and to permit persons to whom the Software is 
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall 
+be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+
+-->
+
 <!DOCTYPE html>
 <html>
   <head>
     <title></title>
   </head>
+
+  <link
+    href="//fonts.googleapis.com/css?family=Roboto:100,400,300"
+    rel="stylesheet"
+    type="text/css"
+  />
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static', filename='styles.css') }}"
+  />
   <body>
-    <table>
-      <thead>
-        <tr>
-          {% for heading in headings %}
-            <th>{{heading}}</th>
+    <div class="window">
+      <div class="window-header">
+        <div class="window-title">Authentication Cookies</div>
+      </div>
+      <div class="window-body">
+        <div>
+          <ul class="row">
+            {% for heading in headings %}
+            <li class="c-property">{{heading}}</li>
+            {% endfor %}
+          </ul>
+          {% for row in data %}
+          <ul class="row">
+            {% for cell in row %}
+            <li class="c-property">{{cell}}</li>
+            {% endfor %}
+          </ul>
           {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in data %}
-        <tr>
-          {% for cell in row %}
-            <td>{{cell}}</td>
-          {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </div>
+      </div>
+    </div>
   </body>
+
 </html>

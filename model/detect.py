@@ -14,16 +14,15 @@ table_data = {}
 
 @app.route('/')
 def display_results():
-    headings = ["Cookie Name", "HTTP-Only", "Secure"]
+    headings = ["Cookie Names", "HTTP-Only", "Secure"]
     data = []
     for cookie in table_data:
         row_data = [
             cookie['name'],
             cookie['httpOnly'],
-            cookie['secure']
+            cookie['secure'],
         ]
         data.append(row_data)
-    print(data)
     return render_template('result.html', headings=headings, data=data)
 
 # Create the receiver API POST endpoint
