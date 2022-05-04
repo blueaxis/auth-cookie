@@ -2,13 +2,11 @@ import pickle
 import numpy as np
 
 from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
 
 from features import cookieCutter
 
 # Set up Flask and bypass CORS
 app = Flask(__name__)
-cors = CORS(app)
 model = None
 table_data = {}
 
@@ -30,19 +28,6 @@ def display_results():
 def detect_cookies():
 
     data = request.get_json()
-    # Process cookies here where data is an array of cookies
-    # Each cookie is a dictionary and have the following format:
-    # {"domain": DOMAIN,
-    # "expirationDate": EXPIRY,
-    # "hostOnly": IS_JAVASCRIPT,
-    # "httpOnly": IS_HTTP_ONLY,
-    # "name": NAME,
-    # "path": PATH,
-    # "sameSite": IS_SAMESITE,
-    # "secure": IS_SECURE,
-    # "storeId": ID,
-    # "value":VALUE}
-    
     res = []
     # FIXME: There is a bug where cookieCutter is converting 
     # data to NaN. I cannot replicate the issue, will try later.
@@ -55,6 +40,13 @@ def detect_cookies():
     global table_data
     table_data = res
     output = jsonify(res)
+    return output
+
+# Create the receiver API POST endpoint
+@app.route("/delete", methods=["POST"])
+def delete_cookies():
+    global table_data
+    output = jsonify(table_data)
     return output
 
 def load_model():

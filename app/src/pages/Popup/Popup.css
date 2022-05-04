@@ -32,7 +32,7 @@
 }
 
 .App-header {
-  height: 80%;
+  height: 60%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,10 +47,11 @@
   color: white;
   border: none;
   padding: 10px 15px;
-  margin: 10px;
+  margin: 10px 10px 3px 10px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10pt;
+  width: 55%;
 }
 
 .Protect-button:hover {

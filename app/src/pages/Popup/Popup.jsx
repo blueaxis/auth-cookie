@@ -2,7 +2,7 @@ import React from 'react';
 
 import logo from '../../assets/img/icon-128.png';
 import './Popup.css';
-import { protectCookies } from './utils';
+import { protectCookies, deleteCookies } from './utils';
 
 const Popup = () => {
   return (
@@ -16,6 +16,12 @@ const Popup = () => {
         className='Protect-button'
       >
         Secure Cookies
+      </button>
+      <button
+        onClick={deleteCookies}
+        className='Protect-button'
+      >
+        Delete Cookies
       </button>
     </div>
   );
