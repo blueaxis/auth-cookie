@@ -1,27 +1,36 @@
 # Enhancing Web Authentication Security Using Random Forest
 
-## Abstract
-
 Building stateful web applications require a session mechanism to maintain server-side session state. Websites use HTTP cookies as authentication tokens to retain user credentials and keep them logged in between sessions. Its importance on authorization purposes makes it the primary target of attack as it allows intruders to gain access to features of an authenticated session. Previous attempts have been made to apply client-side protection mechanisms using authentication cookie detectors. However, such solutions rely on hand-coded rules based on empirical observations resulting in naive detectors. In this study, we aim to improve web security by selectively applying cookie attributes to authentication cookies detected using random forest methodology and assess its performance using machine learning model evaluation metrics. It is hypothesized that using random forest, the performance of previous detection algorithms will be enhanced, resulting to a secure web browsing environment.
 
-## Requirements
-\>= Python 3.9.10
+## Installation
 
-	pip install -r requirements.txt
+### Requirements
 
-## Running
+Python 3.9 is supported. Install the dependencies with `pip install -r requirements.txt`.
 
-### Preparing the training data
+### Installing the Web Extension
 
-	python model\features.py
-
-### Training the model
-
-	python model\train.py
+1. Check if your [Node.js](https://nodejs.org/) version is >= 14.
+2. Clone this repository.
+3. Run the following commands in the `app` directory:
+	- `npm install` to install the dependencies
+	- `npm start` to build the application
+5. Load your extension on Chrome following:
+	- Access `chrome://extensions/`
+	- Check `Developer mode`
+	- Click on `Load unpacked extension`
+	- Select the `build` folder in `app`
 
 ### Running a Local API Instance
 
-	python model\detect.py
+The web extension can only read and write cookie data. To detect authentication cookies, you need to run the Flask application using `python model/detect.py`.
+
+### Building the Random Forest Model
+
+The best-performing model is already available in the `model` directory but you may train another model using the following commands:
+
+- `python model/features.py` to prepare the training data
+- `python model/train.py` to train the model
 
 ## Attributions
 
